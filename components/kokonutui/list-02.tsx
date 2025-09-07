@@ -27,6 +27,8 @@ const getCategoryIcon = (category: string) => {
     case "utilities":
       return Zap
     case "food":
+    case "groceries":
+    case "take out food":
       return UtensilsCrossed
     case "transportation":
       return Car
@@ -35,6 +37,7 @@ const getCategoryIcon = (category: string) => {
     case "entertainment":
       return Gamepad2
     case "household":
+    case "household utilities":
       return ShoppingCart
     default:
       return ShoppingCart
@@ -45,11 +48,17 @@ export default function List02({ className }: List02Props) {
   const [transactions, setTransactions] = useState<ExpenseTransaction[]>([])
 
   useEffect(() => {
-    const allExpenses = expenseStore.getAll()
-    const recentTransactions = allExpenses
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5)
-    setTransactions(recentTransactions)
+    const updateTransactions = () => {
+      const allExpenses = expenseStore.getExpenses()
+      const recentTransactions = allExpenses
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5)
+      setTransactions(recentTransactions)
+    }
+
+    updateTransactions()
+    const unsubscribe = expenseStore.subscribe(updateTransactions)
+    return unsubscribe
   }, [])
 
   return (
@@ -124,7 +133,7 @@ export default function List02({ className }: List02Props) {
       </div>
 
       <div className="p-2 border-t border-zinc-100 dark:border-zinc-800">
-        <Link href="/analytics">
+        <Link href="/transactions">
           <button
             type="button"
             className={cn(

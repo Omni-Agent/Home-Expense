@@ -3,25 +3,19 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus } from "lucide-react"
+import { expenseStore } from "@/lib/expense-store"
 
 interface AddExpenseModalProps {
-  onAddExpense: (expense: {
-    date: string
-    name: string
-    category: string
-    amount: number
-    paidBy: string
-  }) => void
+  isOpen: boolean
+  onClose: () => void
 }
 
-export default function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) {
-  const [open, setOpen] = useState(false)
+function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     name: "",
@@ -38,7 +32,7 @@ export default function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) 
       return
     }
 
-    onAddExpense({
+    expenseStore.addExpense({
       date: formData.date,
       name: formData.name,
       category: formData.category,
@@ -54,17 +48,11 @@ export default function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) 
       amount: "",
       paidBy: "",
     })
-    setOpen(false)
+    onClose()
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Expense
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Expense</DialogTitle>
@@ -136,7 +124,7 @@ export default function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) 
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit">Add Expense</Button>
@@ -146,3 +134,6 @@ export default function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) 
     </Dialog>
   )
 }
+
+export default AddExpenseModal
+export { AddExpenseModal }

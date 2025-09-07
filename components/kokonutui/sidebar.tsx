@@ -92,7 +92,7 @@ export default function Sidebar() {
                   Finance
                 </div>
                 <div className="space-y-1">
-                  <NavItem href="/dashboard" icon={Wallet}>
+                  <NavItem href="/transactions" icon={Wallet}>
                     Transactions
                   </NavItem>
                 </div>

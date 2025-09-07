@@ -8,16 +8,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { Expense } from "@/lib/expense-store"
+import { expenseStore, type Expense } from "@/lib/expense-store"
 
 interface EditExpenseModalProps {
   expense: Expense | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onUpdateExpense: (id: number, updates: Partial<Expense>) => void
+  isOpen: boolean
+  onClose: () => void
 }
 
-export default function EditExpenseModal({ expense, open, onOpenChange, onUpdateExpense }: EditExpenseModalProps) {
+function EditExpenseModal({ expense, isOpen, onClose }: EditExpenseModalProps) {
   const [formData, setFormData] = useState({
     date: "",
     name: "",
@@ -27,16 +26,7 @@ export default function EditExpenseModal({ expense, open, onOpenChange, onUpdate
     status: "paid" as "paid" | "pending",
   })
 
-  const categories = [
-    "Housing",
-    "Utilities",
-    "Food",
-    "Transportation",
-    "Healthcare",
-    "Entertainment",
-    "Household",
-    "Other",
-  ]
+  const categories = ["Housing", "Take out food", "Groceries", "Household utilities", "Transportation", "Entertainment"]
 
   useEffect(() => {
     if (expense) {
@@ -57,7 +47,7 @@ export default function EditExpenseModal({ expense, open, onOpenChange, onUpdate
       return
     }
 
-    onUpdateExpense(expense.id, {
+    expenseStore.updateExpense(expense.id, {
       date: formData.date,
       name: formData.name,
       category: formData.category,
@@ -66,13 +56,13 @@ export default function EditExpenseModal({ expense, open, onOpenChange, onUpdate
       status: formData.status,
     })
 
-    onOpenChange(false)
+    onClose()
   }
 
   if (!expense) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Expense</DialogTitle>
@@ -160,7 +150,7 @@ export default function EditExpenseModal({ expense, open, onOpenChange, onUpdate
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit">Update Expense</Button>
@@ -170,3 +160,6 @@ export default function EditExpenseModal({ expense, open, onOpenChange, onUpdate
     </Dialog>
   )
 }
+
+export default EditExpenseModal
+export { EditExpenseModal }

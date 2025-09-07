@@ -1,15 +1,27 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Layout from "@/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, DollarSign, Calendar, LucidePieChart, BarChart3 } from "lucide-react"
-import { expenseStore } from "@/lib/expense-store"
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts"
+import { expenseStore, type Expense } from "@/lib/expense-store"
+import Layout from "@/components/kokonutui/layout"
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts"
 
 export default function AnalyticsPage() {
-  const [expenses, setExpenses] = useState<any[]>([])
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [totals, setTotals] = useState({
     totalExpenses: 0,
     shareAmount: 0,
@@ -20,12 +32,17 @@ export default function AnalyticsPage() {
   })
 
   useEffect(() => {
-    const allExpenses = expenseStore.getAll()
-    setExpenses(allExpenses)
-    setTotals(expenseStore.getTotals())
+    const updateData = () => {
+      const allExpenses = expenseStore.getExpenses()
+      setExpenses(allExpenses)
+      setTotals(expenseStore.getTotals())
+    }
+
+    updateData()
+    const unsubscribe = expenseStore.subscribe(updateData)
+    return unsubscribe
   }, [])
 
-  // Prepare data for charts
   const categoryData = expenses.reduce((acc: any, expense) => {
     acc[expense.category] = (acc[expense.category] || 0) + expense.amount
     return acc
@@ -45,9 +62,11 @@ export default function AnalyticsPage() {
     return acc
   }, {})
 
-  const lineData = Object.values(monthlyData)
+  const barData = Object.values(monthlyData).sort(
+    (a: any, b: any) => new Date(a.month).getTime() - new Date(b.month).getTime(),
+  )
 
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D", "#FFC658", "#FF7C7C"]
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D"]
 
   const recentExpenses = expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5)
 
@@ -79,7 +98,8 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="text-2xl font-bold text-green-600">${totals.samarthTotal.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
-                {((totals.samarthTotal / totals.totalExpenses) * 100).toFixed(1)}% of total
+                {totals.totalExpenses > 0 ? ((totals.samarthTotal / totals.totalExpenses) * 100).toFixed(1) : 0}% of
+                total
               </p>
             </CardContent>
           </Card>
@@ -92,7 +112,8 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">${totals.prachiTotal.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
-                {((totals.prachiTotal / totals.totalExpenses) * 100).toFixed(1)}% of total
+                {totals.totalExpenses > 0 ? ((totals.prachiTotal / totals.totalExpenses) * 100).toFixed(1) : 0}% of
+                total
               </p>
             </CardContent>
           </Card>
@@ -127,25 +148,27 @@ export default function AnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -157,16 +180,19 @@ export default function AnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={lineData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
-                  <Bar dataKey="Samarth" fill="#10B981" />
-                  <Bar dataKey="Prachi" fill="#8B5CF6" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
+                    <Legend />
+                    <Bar dataKey="Samarth" fill="#10B981" />
+                    <Bar dataKey="Prachi" fill="#8B5CF6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -224,7 +250,7 @@ export default function AnalyticsPage() {
                       <div className="text-right">
                         <p className="font-semibold">${amount.toFixed(2)}</p>
                         <p className="text-xs text-muted-foreground">
-                          {((amount / totals.totalExpenses) * 100).toFixed(1)}%
+                          {totals.totalExpenses > 0 ? ((amount / totals.totalExpenses) * 100).toFixed(1) : 0}%
                         </p>
                       </div>
                     </div>

@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Layout from "@/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TrendingUp, TrendingDown, Calendar, BarChart3, PieChart, LineChart } from "lucide-react"
-import { expenseStore } from "@/lib/expense-store"
+import { expenseStore, type Expense } from "@/lib/expense-store"
+import Layout from "@/components/kokonutui/layout"
 import {
   XAxis,
   YAxis,
@@ -19,16 +19,23 @@ import {
   Bar,
   LineChart as RechartsLineChart,
   Line,
+  Legend,
 } from "recharts"
 
 export default function ComparisonPage() {
-  const [expenses, setExpenses] = useState<any[]>([])
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [selectedMonth, setSelectedMonth] = useState<string>("all")
-  const [selectedYear, setSelectedYear] = useState<string>("2024")
+  const [selectedYear, setSelectedYear] = useState<string>("2025")
 
   useEffect(() => {
-    const allExpenses = expenseStore.getAll()
-    setExpenses(allExpenses)
+    const updateData = () => {
+      const allExpenses = expenseStore.getExpenses()
+      setExpenses(allExpenses)
+    }
+
+    updateData()
+    const unsubscribe = expenseStore.subscribe(updateData)
+    return unsubscribe
   }, [])
 
   // Filter expenses based on selected month/year
@@ -70,7 +77,11 @@ export default function ComparisonPage() {
     return acc
   }, {})
 
-  const lineData = Object.values(monthlyData).sort((a: any, b: any) => a.month.localeCompare(b.month))
+  const lineData = Object.values(monthlyData).sort((a: any, b: any) => {
+    const dateA = new Date(a.month)
+    const dateB = new Date(b.month)
+    return dateA.getTime() - dateB.getTime()
+  })
 
   // Category comparison by person
   const categoryByPersonData = Object.keys(categoryData)
@@ -196,25 +207,27 @@ export default function ComparisonPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -226,16 +239,19 @@ export default function ComparisonPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={categoryByPersonData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="category" angle={-45} textAnchor="end" height={80} fontSize={12} />
-                  <YAxis />
-                  <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
-                  <Bar dataKey="Samarth" fill="#10B981" />
-                  <Bar dataKey="Prachi" fill="#8B5CF6" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={categoryByPersonData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="category" angle={-45} textAnchor="end" height={80} fontSize={12} />
+                    <YAxis />
+                    <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
+                    <Legend />
+                    <Bar dataKey="Samarth" fill="#10B981" />
+                    <Bar dataKey="Prachi" fill="#8B5CF6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -249,17 +265,20 @@ export default function ComparisonPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={400}>
-              <RechartsLineChart data={lineData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
-                <Line type="monotone" dataKey="Samarth" stroke="#10B981" strokeWidth={2} />
-                <Line type="monotone" dataKey="Prachi" stroke="#8B5CF6" strokeWidth={2} />
-                <Line type="monotone" dataKey="total" stroke="#6B7280" strokeWidth={2} strokeDasharray="5 5" />
-              </RechartsLineChart>
-            </ResponsiveContainer>
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsLineChart data={lineData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, ""]} />
+                  <Legend />
+                  <Line type="monotone" dataKey="Samarth" stroke="#10B981" strokeWidth={2} />
+                  <Line type="monotone" dataKey="Prachi" stroke="#8B5CF6" strokeWidth={2} />
+                  <Line type="monotone" dataKey="total" stroke="#6B7280" strokeWidth={2} strokeDasharray="5 5" />
+                </RechartsLineChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
