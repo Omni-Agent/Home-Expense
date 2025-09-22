@@ -3,19 +3,25 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { expenseStore } from "@/lib/expense-store"
+import { Plus } from "lucide-react"
 
 interface AddExpenseModalProps {
-  isOpen: boolean
-  onClose: () => void
+  onAddExpense: (expense: {
+    date: string
+    name: string
+    category: string
+    amount: number
+    paidBy: string
+  }) => void
 }
 
-function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
+function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) {
+  const [isOpen, setIsOpen] = useState(false)
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     name: "",
@@ -32,7 +38,7 @@ function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
       return
     }
 
-    expenseStore.addExpense({
+    onAddExpense({
       date: formData.date,
       name: formData.name,
       category: formData.category,
@@ -48,11 +54,17 @@ function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
       amount: "",
       paidBy: "",
     })
-    onClose()
+    setIsOpen(false)
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Expense
+        </Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Expense</DialogTitle>
@@ -119,12 +131,14 @@ function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
               <SelectContent>
                 <SelectItem value="Samarth">Samarth</SelectItem>
                 <SelectItem value="Prachi">Prachi</SelectItem>
+                <SelectItem value="Paid Samarth">Paid Samarth (Settlement)</SelectItem>
+                <SelectItem value="Paid Prachi">Paid Prachi (Settlement)</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
               Cancel
             </Button>
             <Button type="submit">Add Expense</Button>

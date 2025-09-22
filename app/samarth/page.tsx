@@ -23,33 +23,58 @@ export default function SamarthPage() {
   })
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const samarthExpenses = expenseStore.getByPerson("Samarth")
-    setExpenses(samarthExpenses)
-    setTotals(expenseStore.getTotals())
+    const loadData = async () => {
+      try {
+        const samarthExpenses = await expenseStore.getByPerson("Samarth")
+        const totalsData = await expenseStore.getTotals()
+        setExpenses(samarthExpenses)
+        setTotals(totalsData)
+      } catch (error) {
+        console.error("Error loading data:", error)
+        // Set default values to prevent toFixed errors
+        setTotals({
+          totalExpenses: 0,
+          shareAmount: 0,
+          samarthTotal: 0,
+          prachiTotal: 0,
+          samarthBalance: 0,
+          prachiBalance: 0,
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
   }, [])
 
-  const refreshData = () => {
-    const samarthExpenses = expenseStore.getByPerson("Samarth")
-    setExpenses(samarthExpenses)
-    setTotals(expenseStore.getTotals())
+  const refreshData = async () => {
+    try {
+      const samarthExpenses = await expenseStore.getByPerson("Samarth")
+      const totalsData = await expenseStore.getTotals()
+      setExpenses(samarthExpenses)
+      setTotals(totalsData)
+    } catch (error) {
+      console.error("Error refreshing data:", error)
+    }
   }
 
-  const handleAddExpense = (newExpense: {
+  const handleAddExpense = async (newExpense: {
     date: string
     name: string
     category: string
     amount: number
     paidBy: string
   }) => {
-    expenseStore.add(newExpense)
-    refreshData()
+    await expenseStore.add(newExpense)
+    await refreshData()
   }
 
-  const handleDeleteExpense = (id: number) => {
-    expenseStore.delete(id)
-    refreshData()
+  const handleDeleteExpense = async (id: string) => {
+    await expenseStore.delete(id)
+    await refreshData()
   }
 
   const handleEditExpense = (expense: Expense) => {
@@ -57,9 +82,41 @@ export default function SamarthPage() {
     setEditModalOpen(true)
   }
 
-  const handleUpdateExpense = (id: number, updates: Partial<Expense>) => {
-    expenseStore.update(id, updates)
-    refreshData()
+  const handleUpdateExpense = async (id: string, updates: Partial<Expense>) => {
+    await expenseStore.update(id, updates)
+    await refreshData()
+  }
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Samarth's Expenses</h1>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardHeader className="pb-2">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </Layout>
+    )
   }
 
   return (
@@ -84,7 +141,9 @@ export default function SamarthPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Paid</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">${totals.samarthTotal.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                ${(totals.samarthTotal || 0).toFixed(2)}
+              </div>
             </CardContent>
           </Card>
 
@@ -93,7 +152,9 @@ export default function SamarthPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Share Amount</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">${totals.shareAmount.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                ${(totals.shareAmount || 0).toFixed(2)}
+              </div>
             </CardContent>
           </Card>
 
@@ -103,14 +164,14 @@ export default function SamarthPage() {
             </CardHeader>
             <CardContent>
               <div
-                className={`text-2xl font-bold ${totals.samarthBalance > 0 ? "text-green-600" : totals.samarthBalance < 0 ? "text-red-600" : "text-gray-900 dark:text-white"}`}
+                className={`text-2xl font-bold ${(totals.samarthBalance || 0) > 0 ? "text-green-600" : (totals.samarthBalance || 0) < 0 ? "text-red-600" : "text-gray-900 dark:text-white"}`}
               >
-                {totals.samarthBalance > 0 ? "+" : ""}${totals.samarthBalance.toFixed(2)}
+                {(totals.samarthBalance || 0) > 0 ? "+" : ""}${(totals.samarthBalance || 0).toFixed(2)}
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {totals.samarthBalance > 0
+                {(totals.samarthBalance || 0) > 0
                   ? "Prachi owes you"
-                  : totals.samarthBalance < 0
+                  : (totals.samarthBalance || 0) < 0
                     ? "You owe Prachi"
                     : "All settled"}
               </p>
@@ -141,7 +202,9 @@ export default function SamarthPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="font-semibold text-gray-900 dark:text-white">${expense.amount.toFixed(2)}</div>
+                      <div className="font-semibold text-gray-900 dark:text-white">
+                        ${(expense.amount || 0).toFixed(2)}
+                      </div>
                       <Badge variant={expense.status === "paid" ? "default" : "secondary"}>{expense.status}</Badge>
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => handleEditExpense(expense)}>
