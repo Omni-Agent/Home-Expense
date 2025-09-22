@@ -23,14 +23,16 @@ export default function TransactionsPage() {
   const categories = ["Housing", "Take out food", "Groceries", "Household utilities", "Transportation", "Entertainment"]
 
   useEffect(() => {
-    const updateExpenses = () => {
-      const allExpenses = expenseStore.getExpenses()
+    const updateExpenses = async () => {
+      const allExpenses = await expenseStore.getExpenses()
       setExpenses(allExpenses)
       setFilteredExpenses(allExpenses)
     }
 
     updateExpenses()
-    const unsubscribe = expenseStore.subscribe(updateExpenses)
+    const unsubscribe = expenseStore.subscribe(() => {
+      updateExpenses()
+    })
     return unsubscribe
   }, [])
 
@@ -56,8 +58,8 @@ export default function TransactionsPage() {
     setFilteredExpenses(filtered)
   }, [expenses, searchTerm, selectedCategory, selectedPerson])
 
-  const handleDeleteExpense = (id: number) => {
-    expenseStore.deleteExpense(id)
+  const handleDeleteExpense = async (id: string) => {
+    await expenseStore.deleteExpense(id)
   }
 
   const getCategoryColor = (category: string) => {

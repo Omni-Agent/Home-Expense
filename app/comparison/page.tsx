@@ -28,13 +28,15 @@ export default function ComparisonPage() {
   const [selectedYear, setSelectedYear] = useState<string>("2025")
 
   useEffect(() => {
-    const updateData = () => {
-      const allExpenses = expenseStore.getExpenses()
+    const updateData = async () => {
+      const allExpenses = await expenseStore.getExpenses()
       setExpenses(allExpenses)
     }
 
     updateData()
-    const unsubscribe = expenseStore.subscribe(updateData)
+    const unsubscribe = expenseStore.subscribe(() => {
+      updateData()
+    })
     return unsubscribe
   }, [])
 

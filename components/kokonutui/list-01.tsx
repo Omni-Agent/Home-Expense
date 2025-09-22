@@ -24,30 +24,77 @@ export default function List01({ className }: List01Props) {
     shareAmount: 0,
     samarthTotal: 0,
     prachiTotal: 0,
+    userTotal: 0,
     samarthBalance: 0,
     prachiBalance: 0,
   })
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    setTotals(expenseStore.getTotals())
+    const updateTotals = async () => {
+      try {
+        setIsLoading(true)
+        const totalsData = await expenseStore.getTotals()
+        setTotals(totalsData)
+      } catch (error) {
+        console.error("Error fetching totals:", error)
+        // Keep default values if error occurs
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    updateTotals()
+    const unsubscribe = expenseStore.subscribe(() => {
+      updateTotals()
+    })
+    return unsubscribe
   }, [])
 
   const shares: ExpenseShare[] = [
     {
       id: "1",
       person: "Samarth",
-      share: `$${totals.shareAmount.toFixed(2)}`,
-      paid: totals.samarthBalance >= 0,
+      share: `$${(totals?.shareAmount || 0).toFixed(2)}`,
+      paid: (totals?.samarthBalance || 0) >= 0,
       type: "samarth",
     },
     {
       id: "2",
       person: "Prachi",
-      share: `$${totals.shareAmount.toFixed(2)}`,
-      paid: totals.prachiBalance >= 0,
+      share: `$${(totals?.shareAmount || 0).toFixed(2)}`,
+      paid: (totals?.prachiBalance || 0) >= 0,
       type: "prachi",
     },
   ]
+
+  if (isLoading) {
+    return (
+      <div
+        className={cn(
+          "w-full max-w-xl mx-auto",
+          "bg-white dark:bg-zinc-900/70",
+          "border border-zinc-100 dark:border-zinc-800",
+          "rounded-xl shadow-sm backdrop-blur-xl",
+          "animate-pulse",
+          className,
+        )}
+      >
+        <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="h-3 bg-zinc-200 dark:bg-zinc-700 rounded mb-2"></div>
+          <div className="h-8 bg-zinc-200 dark:bg-zinc-700 rounded mb-2"></div>
+          <div className="h-3 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
+        </div>
+        <div className="p-3">
+          <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded mb-2"></div>
+          <div className="space-y-2">
+            <div className="h-12 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
+            <div className="h-12 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -61,9 +108,11 @@ export default function List01({ className }: List01Props) {
     >
       <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
         <p className="text-xs text-zinc-600 dark:text-zinc-400">Total Shared Expenses (Monthly)</p>
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">${totals.totalExpenses.toFixed(2)}</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+          ${(totals?.totalExpenses || 0).toFixed(2)}
+        </h1>
         <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-          Each person's share: ${totals.shareAmount.toFixed(2)}
+          Each person's share: ${(totals?.shareAmount || 0).toFixed(2)}
         </p>
       </div>
 
@@ -101,10 +150,10 @@ export default function List01({ className }: List01Props) {
                   <h3 className="text-xs font-medium text-zinc-900 dark:text-zinc-100">{share.person}'s Share</h3>
                   <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
                     {share.type === "samarth"
-                      ? totals.samarthBalance >= 0
+                      ? (totals?.samarthBalance || 0) >= 0
                         ? "Overpaid"
                         : "Owes money"
-                      : totals.prachiBalance >= 0
+                      : (totals?.prachiBalance || 0) >= 0
                         ? "Overpaid"
                         : "Owes money"}
                   </p>

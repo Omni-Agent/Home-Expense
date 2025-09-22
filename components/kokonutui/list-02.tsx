@@ -7,7 +7,7 @@ import { expenseStore } from "@/lib/expense-store"
 import Link from "next/link"
 
 interface ExpenseTransaction {
-  id: number
+  id: string // Updated to string for UUID
   name: string
   amount: number
   paidBy: string
@@ -48,8 +48,8 @@ export default function List02({ className }: List02Props) {
   const [transactions, setTransactions] = useState<ExpenseTransaction[]>([])
 
   useEffect(() => {
-    const updateTransactions = () => {
-      const allExpenses = expenseStore.getExpenses()
+    const updateTransactions = async () => {
+      const allExpenses = await expenseStore.getExpenses()
       const recentTransactions = allExpenses
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 5)
@@ -57,7 +57,9 @@ export default function List02({ className }: List02Props) {
     }
 
     updateTransactions()
-    const unsubscribe = expenseStore.subscribe(updateTransactions)
+    const unsubscribe = expenseStore.subscribe(() => {
+      updateTransactions()
+    })
     return unsubscribe
   }, [])
 

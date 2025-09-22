@@ -27,19 +27,23 @@ export default function AnalyticsPage() {
     shareAmount: 0,
     samarthTotal: 0,
     prachiTotal: 0,
+    userTotal: 0, // Added userTotal for new user category
     samarthBalance: 0,
     prachiBalance: 0,
   })
 
   useEffect(() => {
-    const updateData = () => {
-      const allExpenses = expenseStore.getExpenses()
+    const updateData = async () => {
+      const allExpenses = await expenseStore.getExpenses()
+      const totalsData = await expenseStore.getTotals()
       setExpenses(allExpenses)
-      setTotals(expenseStore.getTotals())
+      setTotals(totalsData)
     }
 
     updateData()
-    const unsubscribe = expenseStore.subscribe(updateData)
+    const unsubscribe = expenseStore.subscribe(() => {
+      updateData()
+    })
     return unsubscribe
   }, [])
 
