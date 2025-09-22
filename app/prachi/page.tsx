@@ -23,33 +23,49 @@ export default function PrachiPage() {
   })
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const prachiExpenses = expenseStore.getByPerson("Prachi")
-    setExpenses(prachiExpenses)
-    setTotals(expenseStore.getTotals())
+    loadData()
   }, [])
 
-  const refreshData = () => {
-    const prachiExpenses = expenseStore.getByPerson("Prachi")
-    setExpenses(prachiExpenses)
-    setTotals(expenseStore.getTotals())
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const [allExpenses, totalsData] = await Promise.all([expenseStore.getExpenses(), expenseStore.getTotals()])
+
+      const prachiExpenses = allExpenses.filter((expense) => expense.paidBy === "Prachi")
+      setExpenses(prachiExpenses)
+      setTotals(totalsData)
+    } catch (error) {
+      console.error("Error loading data:", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleAddExpense = (newExpense: {
+  const handleAddExpense = async (newExpense: {
     date: string
     name: string
     category: string
     amount: number
     paidBy: string
   }) => {
-    expenseStore.add(newExpense)
-    refreshData()
+    try {
+      await expenseStore.addExpense(newExpense)
+      await loadData()
+    } catch (error) {
+      console.error("Error adding expense:", error)
+    }
   }
 
-  const handleDeleteExpense = (id: number) => {
-    expenseStore.delete(id)
-    refreshData()
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      await expenseStore.deleteExpense(id)
+      await loadData()
+    } catch (error) {
+      console.error("Error deleting expense:", error)
+    }
   }
 
   const handleEditExpense = (expense: Expense) => {
@@ -57,9 +73,34 @@ export default function PrachiPage() {
     setEditModalOpen(true)
   }
 
-  const handleUpdateExpense = (id: number, updates: Partial<Expense>) => {
-    expenseStore.update(id, updates)
-    refreshData()
+  const handleUpdateExpense = async (id: string, updates: Partial<Expense>) => {
+    try {
+      await expenseStore.updateExpense(id, updates)
+      await loadData()
+    } catch (error) {
+      console.error("Error updating expense:", error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Prachi's Expenses</h1>
+            </div>
+          </div>
+          <div className="text-center py-8">Loading...</div>
+        </div>
+      </Layout>
+    )
   }
 
   return (
@@ -84,7 +125,9 @@ export default function PrachiPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Paid</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">${totals.prachiTotal.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                ${(totals.prachiTotal || 0).toFixed(2)}
+              </div>
             </CardContent>
           </Card>
 
@@ -93,7 +136,9 @@ export default function PrachiPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Share Amount</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">${totals.shareAmount.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                ${(totals.shareAmount || 0).toFixed(2)}
+              </div>
             </CardContent>
           </Card>
 
@@ -103,14 +148,14 @@ export default function PrachiPage() {
             </CardHeader>
             <CardContent>
               <div
-                className={`text-2xl font-bold ${totals.prachiBalance > 0 ? "text-green-600" : totals.prachiBalance < 0 ? "text-red-600" : "text-gray-900 dark:text-white"}`}
+                className={`text-2xl font-bold ${(totals.prachiBalance || 0) > 0 ? "text-green-600" : (totals.prachiBalance || 0) < 0 ? "text-red-600" : "text-gray-900 dark:text-white"}`}
               >
-                {totals.prachiBalance > 0 ? "+" : ""}${totals.prachiBalance.toFixed(2)}
+                {(totals.prachiBalance || 0) > 0 ? "+" : ""}${(totals.prachiBalance || 0).toFixed(2)}
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {totals.prachiBalance > 0
+                {(totals.prachiBalance || 0) > 0
                   ? "Samarth owes you"
-                  : totals.prachiBalance < 0
+                  : (totals.prachiBalance || 0) < 0
                     ? "You owe Samarth"
                     : "All settled"}
               </p>
@@ -124,40 +169,46 @@ export default function PrachiPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {expenses.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">{expense.name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {expense.date} • {expense.category}
-                        </p>
+              {expenses.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">No expenses found for Prachi</p>
+              ) : (
+                expenses.map((expense) => (
+                  <div
+                    key={expense.id}
+                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">{expense.name}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {expense.date} • {expense.category}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <div className="font-semibold text-gray-900 dark:text-white">${expense.amount.toFixed(2)}</div>
-                      <Badge variant={expense.status === "paid" ? "secondary" : "default"}>{expense.status}</Badge>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-900 dark:text-white">
+                          ${(expense.amount || 0).toFixed(2)}
+                        </div>
+                        <Badge variant={expense.status === "paid" ? "secondary" : "default"}>{expense.status}</Badge>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditExpense(expense)}>
+                        <Edit3 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteExpense(expense.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => handleEditExpense(expense)}>
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteExpense(expense.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

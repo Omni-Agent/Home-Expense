@@ -294,127 +294,127 @@ class ExpenseStore {
         console.log("[v0] Initializing demo data...")
         const demoExpenses = [
           // August 2025 entries
-          { date: "2025-08-01", title: "Rent", category: "Housing", amount: 1200, description: "Monthly rent payment" },
+          { date: "2025-08-01", name: "Rent", category: "Housing", amount: 1200, paid_by: "User" },
           {
             date: "2025-08-03",
-            title: "Electricity Bill",
+            name: "Electricity Bill",
             category: "Housing",
             amount: 85,
-            description: "Monthly electricity",
+            paid_by: "User",
           },
-          { date: "2025-08-05", title: "WiFi Bill", category: "Housing", amount: 60, description: "Internet service" },
-          { date: "2025-08-07", title: "Gas Bill", category: "Housing", amount: 45, description: "Natural gas" },
+          { date: "2025-08-05", name: "WiFi Bill", category: "Housing", amount: 60, paid_by: "User" },
+          { date: "2025-08-07", name: "Gas Bill", category: "Housing", amount: 45, paid_by: "User" },
           {
             date: "2025-08-10",
-            title: "Groceries",
+            name: "Groceries",
             category: "Groceries",
             amount: 120,
-            description: "Weekly shopping",
+            paid_by: "User",
           },
           {
             date: "2025-08-12",
-            title: "Pizza Night",
+            name: "Pizza Night",
             category: "Take out food",
             amount: 35,
-            description: "Dinner delivery",
+            paid_by: "User",
           },
           {
             date: "2025-08-15",
-            title: "Cleaning Supplies",
+            name: "Cleaning Supplies",
             category: "Household utilities",
             amount: 25,
-            description: "Household items",
+            paid_by: "User",
           },
           {
             date: "2025-08-18",
-            title: "Uber Ride",
+            name: "Uber Ride",
             category: "Transportation",
             amount: 18,
-            description: "Ride to downtown",
+            paid_by: "User",
           },
           {
             date: "2025-08-20",
-            title: "Movie Tickets",
+            name: "Movie Tickets",
             category: "Entertainment",
             amount: 28,
-            description: "Cinema night",
+            paid_by: "User",
           },
-          { date: "2025-08-22", title: "Groceries", category: "Groceries", amount: 95, description: "Weekly shopping" },
+          { date: "2025-08-22", name: "Groceries", category: "Groceries", amount: 95, paid_by: "User" },
           {
             date: "2025-08-25",
-            title: "Chinese Takeout",
+            name: "Chinese Takeout",
             category: "Take out food",
             amount: 42,
-            description: "Dinner order",
+            paid_by: "User",
           },
           {
             date: "2025-08-28",
-            title: "Laundry Detergent",
+            name: "Laundry Detergent",
             category: "Household utilities",
             amount: 15,
-            description: "Cleaning supplies",
+            paid_by: "User",
           },
 
           // September 2025 entries
-          { date: "2025-09-01", title: "Rent", category: "Housing", amount: 1200, description: "Monthly rent payment" },
+          { date: "2025-09-01", name: "Rent", category: "Housing", amount: 1200, paid_by: "User" },
           {
             date: "2025-09-03",
-            title: "Electricity Bill",
+            name: "Electricity Bill",
             category: "Housing",
             amount: 92,
-            description: "Monthly electricity",
+            paid_by: "User",
           },
-          { date: "2025-09-05", title: "WiFi Bill", category: "Housing", amount: 60, description: "Internet service" },
-          { date: "2025-09-08", title: "Gas Bill", category: "Housing", amount: 38, description: "Natural gas" },
+          { date: "2025-09-05", name: "WiFi Bill", category: "Housing", amount: 60, paid_by: "User" },
+          { date: "2025-09-08", name: "Gas Bill", category: "Housing", amount: 38, paid_by: "User" },
           {
             date: "2025-09-10",
-            title: "Weekly Groceries",
+            name: "Weekly Groceries",
             category: "Groceries",
             amount: 135,
-            description: "Weekly shopping",
+            paid_by: "User",
           },
           {
             date: "2025-09-12",
-            title: "Sushi Dinner",
+            name: "Sushi Dinner",
             category: "Take out food",
             amount: 65,
-            description: "Japanese restaurant",
+            paid_by: "User",
           },
           {
             date: "2025-09-15",
-            title: "Toilet Paper & Tissues",
+            name: "Toilet Paper & Tissues",
             category: "Household utilities",
             amount: 22,
-            description: "Bathroom supplies",
+            paid_by: "User",
           },
-          { date: "2025-09-17", title: "Gas Station", category: "Transportation", amount: 45, description: "Car fuel" },
+          { date: "2025-09-17", name: "Gas Station", category: "Transportation", amount: 45, paid_by: "User" },
           {
             date: "2025-09-20",
-            title: "Concert Tickets",
+            name: "Concert Tickets",
             category: "Entertainment",
             amount: 85,
-            description: "Live music event",
+            paid_by: "User",
           },
           {
             date: "2025-09-22",
-            title: "Groceries",
+            name: "Groceries",
             category: "Groceries",
             amount: 110,
-            description: "Weekly shopping",
+            paid_by: "User",
           },
           {
             date: "2025-09-25",
-            title: "Thai Food",
+            name: "Thai Food",
             category: "Take out food",
             amount: 38,
-            description: "Thai restaurant",
+            paid_by: "User",
           },
           {
             date: "2025-09-28",
-            title: "Dish Soap & Sponges",
+            name: "Dish Soap & Sponges",
             category: "Household utilities",
             amount: 12,
-            description: "Kitchen supplies",
+            paid_by: "User",
           },
         ]
 
@@ -455,11 +455,11 @@ class ExpenseStore {
       data?.map((expense) => ({
         id: expense.id,
         date: expense.date,
-        name: expense.title,
+        name: expense.name,
         category: expense.category,
         amount: Number.parseFloat(expense.amount),
-        paidBy: "User", // Simplified for single user
-        status: "paid" as const,
+        paidBy: expense.paid_by,
+        status: expense.status || "paid",
         created_at: expense.created_at,
         updated_at: expense.updated_at,
       })) || []
@@ -500,11 +500,11 @@ class ExpenseStore {
     const { data, error } = await this.supabase
       .from("expenses")
       .insert({
-        title: expense.name,
+        name: expense.name,
         amount: expense.amount,
         category: expense.category,
         date: expense.date,
-        description: `Added by ${expense.paidBy}`,
+        paid_by: expense.paidBy,
       })
       .select()
       .single()
@@ -517,11 +517,11 @@ class ExpenseStore {
     const newExpense: Expense = {
       id: data.id,
       date: data.date,
-      name: data.title,
+      name: data.name,
       category: data.category,
       amount: Number.parseFloat(data.amount),
-      paidBy: expense.paidBy,
-      status: "paid",
+      paidBy: data.paid_by,
+      status: data.status || "paid",
       created_at: data.created_at,
       updated_at: data.updated_at,
     }
@@ -554,10 +554,11 @@ class ExpenseStore {
     }
 
     const updateData: any = {}
-    if (updates.name) updateData.title = updates.name
+    if (updates.name) updateData.name = updates.name
     if (updates.amount !== undefined) updateData.amount = updates.amount
     if (updates.category) updateData.category = updates.category
     if (updates.date) updateData.date = updates.date
+    if (updates.paidBy) updateData.paid_by = updates.paidBy
 
     const { data, error } = await this.supabase.from("expenses").update(updateData).eq("id", id).select().single()
 
@@ -569,11 +570,11 @@ class ExpenseStore {
     const updatedExpense: Expense = {
       id: data.id,
       date: data.date,
-      name: data.title,
+      name: data.name,
       category: data.category,
       amount: Number.parseFloat(data.amount),
-      paidBy: "User",
-      status: "paid",
+      paidBy: data.paid_by,
+      status: data.status || "paid",
       created_at: data.created_at,
       updated_at: data.updated_at,
     }
@@ -617,7 +618,7 @@ class ExpenseStore {
     }
 
     notificationStore.add(
-      `Expense "${data.title}" ($${Number.parseFloat(data.amount).toFixed(2)}) deleted`,
+      `Expense "${data.name}" ($${Number.parseFloat(data.amount).toFixed(2)}) deleted`,
       "expense_deleted",
     )
     this.notifyListeners()
@@ -661,6 +662,38 @@ class ExpenseStore {
 
   private notifyListeners() {
     this.listeners.forEach((listener) => listener())
+  }
+
+  // Legacy method aliases for backward compatibility
+  async add(expense: Omit<Expense, "id" | "status" | "created_at" | "updated_at">): Promise<Expense | null> {
+    return this.addExpense(expense)
+  }
+
+  async update(id: string, updates: Partial<Expense>): Promise<Expense | null> {
+    return this.updateExpense(id, updates)
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return this.deleteExpense(id)
+  }
+
+  // Synchronous methods for backward compatibility (deprecated)
+  getByPerson(person: string): Expense[] {
+    console.warn("getByPerson is deprecated, use async version")
+    return []
+  }
+
+  getTotals() {
+    console.warn("getTotals is deprecated, use async version")
+    return {
+      totalExpenses: 0,
+      shareAmount: 0,
+      samarthTotal: 0,
+      prachiTotal: 0,
+      userTotal: 0,
+      samarthBalance: 0,
+      prachiBalance: 0,
+    }
   }
 }
 

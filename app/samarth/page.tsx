@@ -68,13 +68,21 @@ export default function SamarthPage() {
     amount: number
     paidBy: string
   }) => {
-    await expenseStore.add(newExpense)
-    await refreshData()
+    try {
+      await expenseStore.addExpense(newExpense)
+      await refreshData()
+    } catch (error) {
+      console.error("Error adding expense:", error)
+    }
   }
 
   const handleDeleteExpense = async (id: string) => {
-    await expenseStore.delete(id)
-    await refreshData()
+    try {
+      await expenseStore.deleteExpense(id)
+      await refreshData()
+    } catch (error) {
+      console.error("Error deleting expense:", error)
+    }
   }
 
   const handleEditExpense = (expense: Expense) => {
@@ -83,8 +91,12 @@ export default function SamarthPage() {
   }
 
   const handleUpdateExpense = async (id: string, updates: Partial<Expense>) => {
-    await expenseStore.update(id, updates)
-    await refreshData()
+    try {
+      await expenseStore.updateExpense(id, updates)
+      await refreshData()
+    } catch (error) {
+      console.error("Error updating expense:", error)
+    }
   }
 
   if (loading) {
