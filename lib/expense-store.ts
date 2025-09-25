@@ -17,9 +17,22 @@ export interface Expense {
 
 class ExpenseStore {
   private listeners: (() => void)[] = []
-  private supabase = createClient()
+  private supabase: ReturnType<typeof createClient> | null = null
   private initialized = false
   private tableExists = false
+
+  private getSupabaseClient() {
+    if (!this.supabase) {
+      try {
+        this.supabase = createClient()
+        console.log("[v0] Supabase client created successfully")
+      } catch (error) {
+        console.error("[v0] Failed to create Supabase client:", error)
+        throw error
+      }
+    }
+    return this.supabase
+  }
 
   async ensureInitialized() {
     if (this.initialized) return
@@ -42,8 +55,9 @@ class ExpenseStore {
 
   private async checkTableExists() {
     try {
+      const supabase = this.getSupabaseClient()
       // Simple check - try to select from the table
-      const { error } = await this.supabase.from("expenses").select("id").limit(1)
+      const { error } = await supabase.from("expenses").select("id").limit(1)
 
       if (error) {
         if (error.message.includes("does not exist") || error.message.includes("schema cache")) {
@@ -78,14 +92,22 @@ class ExpenseStore {
   private getDemoExpenses(): Expense[] {
     return [
       // August 2025 entries
-      { id: "1", date: "2025-08-01", name: "Rent", category: "Housing", amount: 1200, paidBy: "User", status: "paid" },
+      {
+        id: "1",
+        date: "2025-08-01",
+        name: "Rent",
+        category: "Housing",
+        amount: 1200,
+        paidBy: "Samarth",
+        status: "paid",
+      },
       {
         id: "2",
         date: "2025-08-03",
         name: "Electricity Bill",
         category: "Housing",
         amount: 85,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -94,7 +116,7 @@ class ExpenseStore {
         name: "WiFi Bill",
         category: "Housing",
         amount: 60,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -103,7 +125,7 @@ class ExpenseStore {
         name: "Gas Bill",
         category: "Housing",
         amount: 45,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -112,7 +134,7 @@ class ExpenseStore {
         name: "Groceries",
         category: "Groceries",
         amount: 120,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -121,7 +143,7 @@ class ExpenseStore {
         name: "Pizza Night",
         category: "Take out food",
         amount: 35,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -130,7 +152,7 @@ class ExpenseStore {
         name: "Cleaning Supplies",
         category: "Household utilities",
         amount: 25,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -139,7 +161,7 @@ class ExpenseStore {
         name: "Uber Ride",
         category: "Transportation",
         amount: 18,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -148,7 +170,7 @@ class ExpenseStore {
         name: "Movie Tickets",
         category: "Entertainment",
         amount: 28,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -157,7 +179,7 @@ class ExpenseStore {
         name: "Groceries",
         category: "Groceries",
         amount: 95,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -166,7 +188,7 @@ class ExpenseStore {
         name: "Chinese Takeout",
         category: "Take out food",
         amount: 42,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -175,19 +197,27 @@ class ExpenseStore {
         name: "Laundry Detergent",
         category: "Household utilities",
         amount: 15,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
 
       // September 2025 entries
-      { id: "13", date: "2025-09-01", name: "Rent", category: "Housing", amount: 1200, paidBy: "User", status: "paid" },
+      {
+        id: "13",
+        date: "2025-09-01",
+        name: "Rent",
+        category: "Housing",
+        amount: 1200,
+        paidBy: "Prachi",
+        status: "paid",
+      },
       {
         id: "14",
         date: "2025-09-03",
         name: "Electricity Bill",
         category: "Housing",
         amount: 92,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -196,7 +226,7 @@ class ExpenseStore {
         name: "WiFi Bill",
         category: "Housing",
         amount: 60,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -205,7 +235,7 @@ class ExpenseStore {
         name: "Gas Bill",
         category: "Housing",
         amount: 38,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -214,7 +244,7 @@ class ExpenseStore {
         name: "Weekly Groceries",
         category: "Groceries",
         amount: 135,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -223,7 +253,7 @@ class ExpenseStore {
         name: "Sushi Dinner",
         category: "Take out food",
         amount: 65,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -232,7 +262,7 @@ class ExpenseStore {
         name: "Toilet Paper & Tissues",
         category: "Household utilities",
         amount: 22,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -241,7 +271,7 @@ class ExpenseStore {
         name: "Gas Station",
         category: "Transportation",
         amount: 45,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -250,7 +280,7 @@ class ExpenseStore {
         name: "Concert Tickets",
         category: "Entertainment",
         amount: 85,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -259,7 +289,7 @@ class ExpenseStore {
         name: "Groceries",
         category: "Groceries",
         amount: 110,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
       {
@@ -268,7 +298,7 @@ class ExpenseStore {
         name: "Thai Food",
         category: "Take out food",
         amount: 38,
-        paidBy: "User",
+        paidBy: "Prachi",
         status: "paid",
       },
       {
@@ -277,7 +307,7 @@ class ExpenseStore {
         name: "Dish Soap & Sponges",
         category: "Household utilities",
         amount: 12,
-        paidBy: "User",
+        paidBy: "Samarth",
         status: "paid",
       },
     ]
@@ -287,138 +317,139 @@ class ExpenseStore {
     if (!this.tableExists) return
 
     try {
-      const { data: existingExpenses } = await this.supabase.from("expenses").select("*").limit(1)
+      const supabase = this.getSupabaseClient()
+      const { data: existingExpenses } = await supabase.from("expenses").select("*").limit(1)
 
       // Only add demo data if table is empty
       if (!existingExpenses || existingExpenses.length === 0) {
         console.log("[v0] Initializing demo data...")
         const demoExpenses = [
           // August 2025 entries
-          { date: "2025-08-01", name: "Rent", category: "Housing", amount: 1200, paid_by: "User" },
+          { date: "2025-08-01", name: "Rent", category: "Housing", amount: 1200, paid_by: "Samarth" },
           {
             date: "2025-08-03",
             name: "Electricity Bill",
             category: "Housing",
             amount: 85,
-            paid_by: "User",
+            paid_by: "Prachi",
           },
-          { date: "2025-08-05", name: "WiFi Bill", category: "Housing", amount: 60, paid_by: "User" },
-          { date: "2025-08-07", name: "Gas Bill", category: "Housing", amount: 45, paid_by: "User" },
+          { date: "2025-08-05", name: "WiFi Bill", category: "Housing", amount: 60, paid_by: "Samarth" },
+          { date: "2025-08-07", name: "Gas Bill", category: "Housing", amount: 38, paid_by: "Prachi" },
           {
             date: "2025-08-10",
             name: "Groceries",
             category: "Groceries",
             amount: 120,
-            paid_by: "User",
+            paid_by: "Samarth",
           },
           {
             date: "2025-08-12",
             name: "Pizza Night",
             category: "Take out food",
             amount: 35,
-            paid_by: "User",
+            paid_by: "Prachi",
           },
           {
             date: "2025-08-15",
             name: "Cleaning Supplies",
             category: "Household utilities",
             amount: 25,
-            paid_by: "User",
+            paid_by: "Samarth",
           },
           {
             date: "2025-08-18",
             name: "Uber Ride",
             category: "Transportation",
             amount: 18,
-            paid_by: "User",
+            paid_by: "Prachi",
           },
           {
             date: "2025-08-20",
             name: "Movie Tickets",
             category: "Entertainment",
             amount: 28,
-            paid_by: "User",
+            paid_by: "Samarth",
           },
-          { date: "2025-08-22", name: "Groceries", category: "Groceries", amount: 95, paid_by: "User" },
+          { date: "2025-08-22", name: "Groceries", category: "Groceries", amount: 95, paid_by: "Prachi" },
           {
             date: "2025-08-25",
             name: "Chinese Takeout",
             category: "Take out food",
             amount: 42,
-            paid_by: "User",
+            paid_by: "Samarth",
           },
           {
             date: "2025-08-28",
             name: "Laundry Detergent",
             category: "Household utilities",
             amount: 15,
-            paid_by: "User",
+            paid_by: "Prachi",
           },
 
           // September 2025 entries
-          { date: "2025-09-01", name: "Rent", category: "Housing", amount: 1200, paid_by: "User" },
+          { date: "2025-09-01", name: "Rent", category: "Housing", amount: 1200, paid_by: "Prachi" },
           {
             date: "2025-09-03",
             name: "Electricity Bill",
             category: "Housing",
             amount: 92,
-            paid_by: "User",
+            paid_by: "Samarth",
           },
-          { date: "2025-09-05", name: "WiFi Bill", category: "Housing", amount: 60, paid_by: "User" },
-          { date: "2025-09-08", name: "Gas Bill", category: "Housing", amount: 38, paid_by: "User" },
+          { date: "2025-09-05", name: "WiFi Bill", category: "Housing", amount: 60, paid_by: "Prachi" },
+          { date: "2025-09-08", name: "Gas Bill", category: "Housing", amount: 38, paid_by: "Samarth" },
           {
             date: "2025-09-10",
             name: "Weekly Groceries",
             category: "Groceries",
             amount: 135,
-            paid_by: "User",
+            paid_by: "Prachi",
           },
           {
             date: "2025-09-12",
             name: "Sushi Dinner",
             category: "Take out food",
             amount: 65,
-            paid_by: "User",
+            paid_by: "Samarth",
           },
           {
             date: "2025-09-15",
             name: "Toilet Paper & Tissues",
             category: "Household utilities",
             amount: 22,
-            paid_by: "User",
+            paid_by: "Prachi",
           },
-          { date: "2025-09-17", name: "Gas Station", category: "Transportation", amount: 45, paid_by: "User" },
+          { date: "2025-09-17", name: "Gas Station", category: "Transportation", amount: 45, paid_by: "Samarth" },
           {
             date: "2025-09-20",
             name: "Concert Tickets",
             category: "Entertainment",
             amount: 85,
-            paid_by: "User",
+            paid_by: "Prachi",
           },
           {
             date: "2025-09-22",
             name: "Groceries",
             category: "Groceries",
             amount: 110,
-            paid_by: "User",
+            paid_by: "Samarth",
           },
           {
             date: "2025-09-25",
             name: "Thai Food",
             category: "Take out food",
             amount: 38,
-            paid_by: "User",
+            paid_by: "Prachi",
           },
           {
             date: "2025-09-28",
             name: "Dish Soap & Sponges",
             category: "Household utilities",
             amount: 12,
-            paid_by: "User",
+            paid_by: "Samarth",
           },
         ]
 
-        const { error } = await this.supabase.from("expenses").insert(demoExpenses)
+        const { error } = await supabase.from("expenses").insert(demoExpenses)
         if (error) {
           console.error("[v0] Error inserting demo data:", error)
         } else {
@@ -444,7 +475,8 @@ class ExpenseStore {
       return []
     }
 
-    const { data, error } = await this.supabase.from("expenses").select("*").order("date", { ascending: false })
+    const supabase = this.getSupabaseClient()
+    const { data, error } = await supabase.from("expenses").select("*").order("date", { ascending: false })
 
     if (error) {
       console.error("Error fetching expenses:", error)
@@ -497,7 +529,8 @@ class ExpenseStore {
       return newExpense
     }
 
-    const { data, error } = await this.supabase
+    const supabase = this.getSupabaseClient()
+    const { data, error } = await supabase
       .from("expenses")
       .insert({
         name: expense.name,
@@ -560,7 +593,8 @@ class ExpenseStore {
     if (updates.date) updateData.date = updates.date
     if (updates.paidBy) updateData.paid_by = updates.paidBy
 
-    const { data, error } = await this.supabase.from("expenses").update(updateData).eq("id", id).select().single()
+    const supabase = this.getSupabaseClient()
+    const { data, error } = await supabase.from("expenses").update(updateData).eq("id", id).select().single()
 
     if (error) {
       console.error("Error updating expense:", error)
@@ -610,23 +644,23 @@ class ExpenseStore {
       return true
     }
 
-    const { data, error } = await this.supabase.from("expenses").delete().eq("id", id).select().single()
+    const supabase = this.getSupabaseClient()
+    const { error } = await supabase.from("expenses").delete().eq("id", id)
 
     if (error) {
       console.error("Error deleting expense:", error)
       return false
     }
 
-    notificationStore.add(
-      `Expense "${data.name}" ($${Number.parseFloat(data.amount).toFixed(2)}) deleted`,
-      "expense_deleted",
-    )
+    notificationStore.add(`Expense deleted successfully`, "expense_deleted")
     this.notifyListeners()
     return true
   }
 
   async getTotals() {
+    console.log("[v0] Getting totals...")
     const expenses = await this.getExpenses()
+    console.log("[v0] Expenses for totals calculation:", expenses.length)
 
     const samarthTotal = expenses
       .filter((expense) => expense.paidBy === "Samarth")
@@ -641,6 +675,14 @@ class ExpenseStore {
       .reduce((sum, expense) => sum + expense.amount, 0)
 
     const totalExpenses = samarthTotal + prachiTotal + userTotal
+
+    console.log("[v0] Totals calculation:", {
+      samarthTotal,
+      prachiTotal,
+      userTotal,
+      totalExpenses,
+      shareAmount: totalExpenses / 2,
+    })
 
     return {
       totalExpenses,

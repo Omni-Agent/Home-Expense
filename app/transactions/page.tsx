@@ -62,6 +62,17 @@ export default function TransactionsPage() {
     await expenseStore.deleteExpense(id)
   }
 
+  const handleAddExpense = async (expense: {
+    date: string
+    name: string
+    category: string
+    amount: number
+    paidBy: string
+  }) => {
+    await expenseStore.addExpense(expense)
+    setShowAddModal(false)
+  }
+
   const getCategoryColor = (category: string) => {
     const colors = {
       Housing: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
@@ -192,7 +203,7 @@ export default function TransactionsPage() {
           </CardContent>
         </Card>
 
-        <AddExpenseModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
+        <AddExpenseModal onAddExpense={handleAddExpense} />
 
         {editingExpense && (
           <EditExpenseModal
