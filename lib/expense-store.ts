@@ -661,6 +661,7 @@ class ExpenseStore {
     console.log("[v0] Getting totals...")
     const expenses = await this.getExpenses()
     console.log("[v0] Expenses for totals calculation:", expenses.length)
+    console.log("[v0] Sample expenses:", expenses.slice(0, 3))
 
     const samarthTotal = expenses
       .filter((expense) => expense.paidBy === "Samarth")
@@ -717,25 +718,6 @@ class ExpenseStore {
 
   async delete(id: string): Promise<boolean> {
     return this.deleteExpense(id)
-  }
-
-  // Synchronous methods for backward compatibility (deprecated)
-  getByPerson(person: string): Expense[] {
-    console.warn("getByPerson is deprecated, use async version")
-    return []
-  }
-
-  getTotals() {
-    console.warn("getTotals is deprecated, use async version")
-    return {
-      totalExpenses: 0,
-      shareAmount: 0,
-      samarthTotal: 0,
-      prachiTotal: 0,
-      userTotal: 0,
-      samarthBalance: 0,
-      prachiBalance: 0,
-    }
   }
 }
 
