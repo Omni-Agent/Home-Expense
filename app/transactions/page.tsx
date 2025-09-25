@@ -203,7 +203,7 @@ export default function TransactionsPage() {
           </CardContent>
         </Card>
 
-        <AddExpenseModal onAddExpense={handleAddExpense} />
+        <AddExpenseModal onAddExpense={handleAddExpense} isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
 
         {editingExpense && (
           <EditExpenseModal

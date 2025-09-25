@@ -18,10 +18,12 @@ interface AddExpenseModalProps {
     amount: number
     paidBy: string
   }) => void
+  isOpen?: boolean
+  onClose?: () => void
 }
 
-function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) {
-  const [isOpen, setIsOpen] = useState(false)
+function AddExpenseModal({ onAddExpense, isOpen: externalIsOpen, onClose: externalOnClose }: AddExpenseModalProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false)
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     name: "",
@@ -30,7 +32,22 @@ function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) {
     paidBy: "",
   })
 
-  const categories = ["Housing", "Take out food", "Groceries", "Household utilities", "Transportation", "Entertainment"]
+  const categories = [
+    "Housing",
+    "Take out food",
+    "Groceries",
+    "Household utilities",
+    "Transportation",
+    "Entertainment",
+    "Settlement",
+  ]
+
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen
+  const setIsOpen = externalOnClose
+    ? (open: boolean) => {
+        if (!open) externalOnClose()
+      }
+    : setInternalIsOpen
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,12 +76,14 @@ function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Expense
-        </Button>
-      </DialogTrigger>
+      {externalIsOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Expense
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Expense</DialogTitle>
@@ -131,8 +150,12 @@ function AddExpenseModal({ onAddExpense }: AddExpenseModalProps) {
               <SelectContent>
                 <SelectItem value="Samarth">Samarth</SelectItem>
                 <SelectItem value="Prachi">Prachi</SelectItem>
-                <SelectItem value="Paid Samarth">Paid Samarth (Settlement)</SelectItem>
-                <SelectItem value="Paid Prachi">Paid Prachi (Settlement)</SelectItem>
+                {formData.category === "Settlement" && (
+                  <>
+                    <SelectItem value="Paid Samarth">Paid Samarth (Settlement)</SelectItem>
+                    <SelectItem value="Paid Prachi">Paid Prachi (Settlement)</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
